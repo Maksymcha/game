@@ -4,8 +4,9 @@ import com.badlogic.gdx.graphics.Texture;
 
 public class RunningEnemy extends Enemy {
     int SprintPower;
-    public RunningEnemy(int health, int speed, int SprintPower,int damage, Texture texture) {
-        super(health, speed,damage, texture);
-        this.SprintPower = SprintPower;
+
+
+    public RunningEnemy(float x, float y, int health, int damage, Texture texture) {
+        super(x, y, health, damage, texture);
     }
 }

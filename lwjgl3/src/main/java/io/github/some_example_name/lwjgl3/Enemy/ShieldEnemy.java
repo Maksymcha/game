@@ -4,7 +4,9 @@ import com.badlogic.gdx.graphics.Texture;
 
 public class ShieldEnemy extends Enemy{
     int ShieldHealth;
-    public ShieldEnemy(int health, int speed,int ShieldHealth,int damage, Texture texture) {
-        super(health, speed,damage, texture);this.ShieldHealth = ShieldHealth;
+
+
+    public ShieldEnemy(float x, float y, int health, int damage, Texture texture) {
+        super(x, y, health, damage, texture);
     }
 }

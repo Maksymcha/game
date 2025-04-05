@@ -6,131 +6,104 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
+import io.github.some_example_name.lwjgl3.Enemy.Enemy;
 
-public class Hero implements Movable, Alive, Attackable,Entity {
-    private int health;
-    private boolean dead;
-    private int damage;
-    private int speed;
-    private float x, y;
-    private int level = 1;
-    private static final int MAX_LEVEL = 4;
-    private int xp = 0;
+import java.util.List;
+
+public class Hero implements Entity, Alive, Attackable,Positionable {
     private Sprite sprite;
-    private Rectangle collider;
+    private float x, y;
+    private float speed = 200f;
+    private int health = 100;
+    private int damage = 1000;
+    private float lastAttackTime = 0f;
+    private Rectangle movementCollider;
+    private Rectangle attackCollider;
 
-    public Hero(int health, int speed, float startX, float startY, int damage, Texture texture) {
-        this.health = health;
-        this.speed = speed;
-        this.x = startX;
-        this.y = startY;
-        this.damage = damage;
-        this.dead = false;
+    public Hero(Texture texture, float x, float y) {
         this.sprite = new Sprite(texture);
+        this.x = x;
+        this.y = y;
         this.sprite.setPosition(x, y);
-        this.sprite.setSize(texture.getWidth(), texture.getHeight());
-        this.collider = new Rectangle(x, y, texture.getWidth(), texture.getHeight());
+        this.movementCollider = new Rectangle(x, y, sprite.getWidth(), sprite.getHeight());
+        this.attackCollider = new Rectangle(x - 150, y - 150, sprite.getWidth()*3, sprite.getHeight()*3);
+
     }
-    @Override
-    public void move() {
+
+    public void move(List<Rectangle> enemyColliders) {
         float deltaTime = Gdx.graphics.getDeltaTime();
-        float newX = x;
-        float newY = y;
+        float moveSpeed = 50f;
+        float moveX = 0, moveY = 0;
+        if (Gdx.input.isKeyPressed(Input.Keys.A)) moveX -= 1;
+        if (Gdx.input.isKeyPressed(Input.Keys.D)) moveX += 1;
+        if (Gdx.input.isKeyPressed(Input.Keys.W)) moveY += 1;
+        if (Gdx.input.isKeyPressed(Input.Keys.S)) moveY -= 1;
+        if (moveX != 0 && moveY != 0) {
+            float norm = (float) Math.sqrt(2);
+            moveX /= norm;
+            moveY /= norm;
+        }
 
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) newX -= speed * deltaTime;
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) newX += speed * deltaTime;
-        if (Gdx.input.isKeyPressed(Input.Keys.W)) newY += speed * deltaTime;
-        if (Gdx.input.isKeyPressed(Input.Keys.S)) newY -= speed * deltaTime;
+        float deltaX = moveX * moveSpeed * deltaTime;
+        float deltaY = moveY * moveSpeed * deltaTime;
 
-        x = Math.max(sprite.getWidth() / 2, Math.min(newX, Gdx.graphics.getWidth() - sprite.getWidth() / 2));
-        y = Math.max(sprite.getHeight() / 2, Math.min(newY, Gdx.graphics.getHeight() - sprite.getHeight() / 2));
+        float newX = movementCollider.x;
+        float newY = movementCollider.y;
+        if (!isColliding(newX + deltaX, newY, enemyColliders)) {
+            newX += deltaX;
+        }
+        if (!isColliding(newX, newY + deltaY, enemyColliders)) {
+            newY += deltaY;
+        }
+        x = newX;
+        y = newY;
+        updateColliders();
         sprite.setPosition(x, y);
-        collider.set(x, y, sprite.getWidth(), sprite.getHeight());
-        collider.set(x, y, sprite.getWidth(), sprite.getHeight());
     }
 
-    @Override
-    public int getSpeed() {
-        return speed;
+    private boolean isColliding(float x, float y, List<Rectangle> colliders) {
+        for (Rectangle r : colliders) {
+            if (movementCollider.overlaps(r)) return true;
+        }
+        return false;
+    }
+    public void updateColliders() {
+        movementCollider.setPosition(x, y);
+        attackCollider.setPosition(x, y);
     }
 
-    @Override
-    public void setSpeed(int speed) {
-        this.speed = speed;
-    }
 
-    @Override
-    public int getLvl() {
-        return level;
-    }
-
-    @Override
-    public int getHealth() {
-        return health;
-    }
-
-    @Override
-    public void setHealth(int health) {
-        this.health = Math.max(0, health);
-        this.dead = (this.health == 0);
-    }
-
-    @Override
-    public void takeDamage(int damage) {
-        setHealth(this.health - damage);
-    }
-
-    @Override
-    public boolean isDead() {
-        return dead;
-    }
-
-    public float getX() {
-        return x;
-    }
-
-    public float getY() {
-        return y;
-    }
-
-    @Override
-    public int getDamage() {
-        return damage;
-    }
-
-    @Override
-    public void setDamage(int damage) {
-        this.damage = damage;
-    }
+    @Override public void draw(SpriteBatch batch) { sprite.draw(batch); }
+    @Override public int getLvl() { return 1; }
+    @Override public boolean isDead() { return health <= 0; }
+    @Override public void takeDamage(int damage) { health -= damage; }
+    @Override public int getHealth() { return health; }
+    @Override public void setHealth(int health) { this.health = health; }
 
     @Override
     public void Attack(Alive target) {
-        if (!dead) {
-            target.takeDamage(damage);
+       target.takeDamage(damage);
+    }
+
+    @Override public int getDamage() { return damage; }
+     public void setDamage(int damage) { this.damage = damage; }
+    public float getLastAttackTime() { return lastAttackTime; }
+     public void setLastAttackTime(float time) { this.lastAttackTime = time; }
+    public float getX() { return x; }
+    public float getY() { return y; }
+    public Rectangle getMovementCollider() { return movementCollider; }
+    public Rectangle getAttackCollider() { return attackCollider; }
+    public Enemy getClosestEnemy(Enemy[] enemies) {
+        if (enemies.length==0) return null;
+        Enemy closest = enemies[0];
+        float minDist = distanceBetween(closest);
+        for (Enemy enemy : enemies) {
+            float dist = distanceBetween(enemy);
+            if (dist < minDist) {
+                minDist = dist;
+                closest = enemy;
+            }
         }
-    }
-
-    public void levelUp() {
-        if (level < MAX_LEVEL) {
-            level++;
-            health += 10;
-            damage += 2;
-            speed += 1;
-        }
-    }
-    public Rectangle getCollider() {
-        return collider;
-    }
-
-    public float getWidth() {
-        return sprite.getWidth();
-    }
-
-    public float getHeight() {
-        return sprite.getHeight();
-    }
-    @Override
-    public void draw(SpriteBatch batch) {
-        sprite.draw(batch);
+        return closest;
     }
 }

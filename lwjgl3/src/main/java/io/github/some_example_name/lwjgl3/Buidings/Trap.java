@@ -1,7 +1,5 @@
-package io.github.some_example_name.lwjgl3.Buildings;
-
+package io.github.some_example_name.lwjgl3.Buidings;
 import com.badlogic.gdx.graphics.Texture;
-import io.github.some_example_name.lwjgl3.Buidings.Building;
 
 public class Trap extends Building {
     private int damage;
@@ -13,10 +11,5 @@ public class Trap extends Building {
 
     public int getDamage() {
         return damage;
-    }
-
-    @Override
-    protected void onUpgrade() {
-        damage += damage * (level / 10);
     }
 }
