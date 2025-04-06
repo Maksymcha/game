@@ -13,13 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public abstract class Enemy implements Alive, Movable, Attackable, Entity,Positionable {
+public abstract class Enemy implements Alive, Attackable, Entity,Positionable {
     protected Sprite sprite;
     protected float x, y;
     protected int health;
     protected int damage;
-    protected float velocityX = 0;
-    protected float velocityY = 0;
     protected float maxSpeed;
     private Rectangle movementCollider = new Rectangle();
     private Rectangle attackCollider = new Rectangle();
@@ -47,25 +45,20 @@ public abstract class Enemy implements Alive, Movable, Attackable, Entity,Positi
 
     public void updateColliders() {
         movementCollider.set(x, y, sprite.getWidth(), sprite.getHeight());
-        attackCollider.set(x, y, sprite.getWidth(), sprite.getHeight()); // Adjust as needed
+        attackCollider.set(x, y, sprite.getWidth(), sprite.getHeight());
     }
 
-    @Override
-    public int getSpeed() {
-        return 0;
+
+    public float getSpeed() {
+        return maxSpeed;
     }
 
-    @Override
+
     public void setSpeed(int speed) {
-
+          this.maxSpeed = speed;
     }
 
-    @Override
-    public void move() {
-
-    }
-
-    public void move(List<Rectangle> enemysObstacles, Vector2 basePosition) {
+   public void move(List<Rectangle> enemysObstacles, Vector2 basePosition) {
         float speed = 100f;
         float deltaTime = Gdx.graphics.getDeltaTime();
         float dx = basePosition.x - x;
@@ -123,17 +116,14 @@ public abstract class Enemy implements Alive, Movable, Attackable, Entity,Positi
     public void Attack(Alive target) {
         target.takeDamage(damage);
     }
-
     @Override
     public int getDamage() {
         return damage;
     }
-
     @Override
     public void draw(SpriteBatch batch) {
         sprite.draw(batch);
     }
-
     public float getX() { return x; }
     public float getY() { return y; }
     public Alive getClosestTarget(Enemy enemy, Player player, Base base) {
@@ -156,8 +146,5 @@ public abstract class Enemy implements Alive, Movable, Attackable, Entity,Positi
             }
         }
         return closest;
-    }
-    public void Upgrade(){
-
     }
 }

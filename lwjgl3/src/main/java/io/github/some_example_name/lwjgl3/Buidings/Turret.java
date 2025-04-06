@@ -35,4 +35,8 @@ public class Turret extends Building {
         return range;
     }
 
+    @Override
+    public void upgradeAttributes() {
+
+    }
 }

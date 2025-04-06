@@ -15,7 +15,7 @@ public class Hero implements Entity, Alive, Attackable,Positionable {
     private float x, y;
     private float speed = 200f;
     private int health = 100;
-    private int damage = 1000;
+    private int damage = 10;
     private float lastAttackTime = 0f;
     private Rectangle movementCollider;
     private Rectangle attackCollider;
@@ -32,7 +32,6 @@ public class Hero implements Entity, Alive, Attackable,Positionable {
 
     public void move(List<Rectangle> enemyColliders) {
         float deltaTime = Gdx.graphics.getDeltaTime();
-        float moveSpeed = 50f;
         float moveX = 0, moveY = 0;
         if (Gdx.input.isKeyPressed(Input.Keys.A)) moveX -= 1;
         if (Gdx.input.isKeyPressed(Input.Keys.D)) moveX += 1;
@@ -44,8 +43,8 @@ public class Hero implements Entity, Alive, Attackable,Positionable {
             moveY /= norm;
         }
 
-        float deltaX = moveX * moveSpeed * deltaTime;
-        float deltaY = moveY * moveSpeed * deltaTime;
+        float deltaX = moveX * speed * deltaTime;
+        float deltaY = moveY * speed * deltaTime;
 
         float newX = movementCollider.x;
         float newY = movementCollider.y;

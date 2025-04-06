@@ -9,6 +9,11 @@ public class Trap extends Building {
         damage = 20;
     }
 
+    @Override
+    public void upgradeAttributes() {
+
+    }
+
     public int getDamage() {
         return damage;
     }
