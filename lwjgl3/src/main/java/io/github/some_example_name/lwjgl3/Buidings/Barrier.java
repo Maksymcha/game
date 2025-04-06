@@ -10,6 +10,12 @@ public class Barrier extends Building implements Alive {
         maxHealth = 100;
         health = maxHealth;
     }
+
+    @Override
+    public void upgradeAttributes() {
+
+    }
+
     @Override
     public int getLvl() {
         return 0;
@@ -20,7 +26,7 @@ public class Barrier extends Building implements Alive {
     }
     @Override
     public void setHealth(int health) {
-        this.health = Math.max(0, health);
+        this.health = Math.max(0, Math.min(health, maxHealth));
     }
     @Override
     public void takeDamage(int damage) {

@@ -52,11 +52,11 @@ public class ScreenRenderer extends ApplicationAdapter {
                     int damage = enemy.getDamage();
                     int healthBefore = target.getHealth();
                     enemy.Attack(target);
+                    System.out.println("Enemy attacked "+damage);
                     if (target.isDead() && target instanceof Barrier) {
                         int excessDamage = damage - healthBefore;
                         if (excessDamage > 0) {
                             base.takeDamage(excessDamage);
-                            System.out.println(excessDamage);
                         }
                     }
                     enemy.lastAttackTime = currentTime;
@@ -71,12 +71,6 @@ public class ScreenRenderer extends ApplicationAdapter {
                 hero.setLastAttackTime(currentTime);
             }
 
-    }
-
-    private float distanceBetween(Alive a, Alive b) {
-        float dx = a.getMovementCollider().x - b.getMovementCollider().x;
-        float dy = a.getMovementCollider().y - b.getMovementCollider().y;
-        return (float) Math.sqrt(dx * dx + dy * dy);
     }
 
     @Override

@@ -30,9 +30,9 @@ public class EnemySpawner {
     }
 
     private void spawnRandomEnemy(List<Rectangle> obstacles) {
-        runningEnemy = new Texture("hero.png");
-        shieldEnemy = new Texture("hero.png");
-        int type = (int) (Math.random() * 2); // 0 or 1
+        runningEnemy = new Texture("RunningEnemy.png");
+        shieldEnemy = new Texture("ShieldEnemy.png");
+        int type = (int) (Math.random() * 2);
         Enemy newEnemy;
         if (type == 0) {
             newEnemy = new RunningEnemy(x,y, 100, 30,runningEnemy);
