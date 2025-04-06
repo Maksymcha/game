@@ -5,7 +5,7 @@ public class BulletEnemy extends Enemy{
     int Range;
 
 
-    public BulletEnemy(float x, float y, int health, int damage, Texture texture) {
-        super(x, y, health, damage, texture);
+    public BulletEnemy(float x, float y, int health, int damage, Texture texture,float speed) {
+        super(x, y, health, damage, texture, speed);
     }
 }

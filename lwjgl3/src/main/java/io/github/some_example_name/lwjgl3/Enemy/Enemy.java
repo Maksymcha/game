@@ -3,6 +3,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import io.github.some_example_name.lwjgl3.*;
@@ -19,11 +20,13 @@ public abstract class Enemy implements Alive, Attackable, Entity,Positionable {
     protected int health;
     protected int damage;
     protected float maxSpeed;
+    protected float speed;
     private Rectangle movementCollider = new Rectangle();
     private Rectangle attackCollider = new Rectangle();
     public long lastAttackTime = 0;
+    private String name;
 
-    public Enemy(float x, float y, int health, int damage, Texture texture) {
+    public Enemy(float x, float y, int health, int damage, Texture texture, float speed) {
         this.x = x;
         this.y = y;
         this.health = health;
@@ -31,6 +34,7 @@ public abstract class Enemy implements Alive, Attackable, Entity,Positionable {
         sprite = new Sprite(texture);
         sprite.setPosition(x, y);
         updateColliders();
+        this.speed = speed;
     }
 
     @Override
@@ -45,10 +49,12 @@ public abstract class Enemy implements Alive, Attackable, Entity,Positionable {
 
     public void updateColliders() {
         movementCollider.set(x, y, sprite.getWidth(), sprite.getHeight());
-        attackCollider.set(x, y, sprite.getWidth(), sprite.getHeight());
+        attackCollider.set(x-sprite.getWidth(), y-sprite.getHeight(), sprite.getWidth()*3, sprite.getHeight()*3);
     }
 
-
+     public String getName() {
+        return name;
+     }
     public float getSpeed() {
         return maxSpeed;
     }
@@ -59,7 +65,6 @@ public abstract class Enemy implements Alive, Attackable, Entity,Positionable {
     }
 
    public void move(List<Rectangle> enemysObstacles, Vector2 basePosition) {
-        float speed = 100f;
         float deltaTime = Gdx.graphics.getDeltaTime();
         float dx = basePosition.x - x;
         float dy = basePosition.y - y;
@@ -146,5 +151,12 @@ public abstract class Enemy implements Alive, Attackable, Entity,Positionable {
             }
         }
         return closest;
+    }
+    public void drawColliders(ShapeRenderer shapeRenderer) {
+        shapeRenderer.setColor(1, 0.5f, 0, 1); // Orange for movement collider
+        shapeRenderer.rect(movementCollider.x, movementCollider.y, movementCollider.width, movementCollider.height);
+
+        shapeRenderer.setColor(1, 0, 1, 1); // Magenta for attack collider
+        shapeRenderer.rect(attackCollider.x, attackCollider.y, attackCollider.width, attackCollider.height);
     }
 }

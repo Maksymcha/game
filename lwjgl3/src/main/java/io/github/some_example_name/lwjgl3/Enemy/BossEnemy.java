@@ -5,8 +5,8 @@ import com.badlogic.gdx.graphics.Texture;
 public class BossEnemy extends Enemy {
 
 
-    public BossEnemy(float x, float y, int health, int damage, Texture texture) {
-        super(x, y, health, damage, texture);
+    public BossEnemy(float x, float y, int health, int damage, Texture texture,float speed) {
+        super(x, y, health, damage, texture, speed);
     }
 
     void SpecialAbility() {

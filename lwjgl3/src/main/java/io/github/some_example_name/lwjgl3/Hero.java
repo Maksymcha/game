@@ -5,6 +5,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import io.github.some_example_name.lwjgl3.Enemy.Enemy;
 
@@ -15,10 +16,12 @@ public class Hero implements Entity, Alive, Attackable,Positionable {
     private float x, y;
     private float speed = 200f;
     private int health = 100;
-    private int damage = 10;
+    private int damage = 100;
     private float lastAttackTime = 0f;
     private Rectangle movementCollider;
     private Rectangle attackCollider;
+    private ShapeRenderer shapeRenderer = new ShapeRenderer();
+    private String name = "hero";
 
     public Hero(Texture texture, float x, float y) {
         this.sprite = new Sprite(texture);
@@ -26,7 +29,7 @@ public class Hero implements Entity, Alive, Attackable,Positionable {
         this.y = y;
         this.sprite.setPosition(x, y);
         this.movementCollider = new Rectangle(x, y, sprite.getWidth(), sprite.getHeight());
-        this.attackCollider = new Rectangle(x - 150, y - 150, sprite.getWidth()*3, sprite.getHeight()*3);
+        this.attackCollider = new Rectangle(x - 200, y - 200, sprite.getWidth()*3, sprite.getHeight()*3);
 
     }
 
@@ -68,7 +71,7 @@ public class Hero implements Entity, Alive, Attackable,Positionable {
     }
     public void updateColliders() {
         movementCollider.setPosition(x, y);
-        attackCollider.setPosition(x, y);
+        attackCollider.setPosition(x-sprite.getWidth(), y-sprite.getHeight());
     }
 
 
@@ -88,6 +91,12 @@ public class Hero implements Entity, Alive, Attackable,Positionable {
      public void setDamage(int damage) { this.damage = damage; }
     public float getLastAttackTime() { return lastAttackTime; }
      public void setLastAttackTime(float time) { this.lastAttackTime = time; }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
     public float getX() { return x; }
     public float getY() { return y; }
     public Rectangle getMovementCollider() { return movementCollider; }
@@ -105,4 +114,12 @@ public class Hero implements Entity, Alive, Attackable,Positionable {
         }
         return closest;
     }
+    public void drawColliders(ShapeRenderer shapeRenderer) {
+        shapeRenderer.setColor(0, 1, 0, 1); // Green
+        shapeRenderer.rect(movementCollider.x, movementCollider.y, movementCollider.width, movementCollider.height);
+
+        shapeRenderer.setColor(1, 0, 0, 1); // Red
+        shapeRenderer.rect(attackCollider.x, attackCollider.y, attackCollider.width, attackCollider.height);
+    }
+
 }

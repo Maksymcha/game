@@ -3,14 +3,17 @@ package io.github.some_example_name.lwjgl3.Buidings;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import io.github.some_example_name.lwjgl3.Alive;
 import io.github.some_example_name.lwjgl3.Entity;
 import io.github.some_example_name.lwjgl3.Hero;
 
 public class Base implements Entity, Alive {
+    ShapeRenderer shapeRenderer = new ShapeRenderer();
     private Sprite baseSprite;
     private int health = 500;
+    private String name = "Base";
     private Rectangle movementCollider = new Rectangle();
     public Base(Texture texture, float x, float y, float width, float height) {
         baseSprite = new Sprite(texture);
@@ -31,6 +34,9 @@ public class Base implements Entity, Alive {
     }
     @Override
     public void setHealth(int health) {
+    }
+    public String getName() {
+        return name;
     }
     @Override
     public void takeDamage(int damage) {
@@ -53,4 +59,8 @@ public class Base implements Entity, Alive {
     public float getY() { return baseSprite.getY(); }
     public float getWidth() { return baseSprite.getWidth(); }
     public float getHeight() { return baseSprite.getHeight(); }
+    public void drawColliders(ShapeRenderer shapeRenderer) {
+        shapeRenderer.setColor(0, 0, 1, 1); // Blue
+        shapeRenderer.rect(movementCollider.x, movementCollider.y, movementCollider.width, movementCollider.height);
+    }
 }

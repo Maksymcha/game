@@ -6,7 +6,7 @@ public class ShieldEnemy extends Enemy{
     int ShieldHealth;
 
 
-    public ShieldEnemy(float x, float y, int health, int damage, Texture texture) {
-        super(x, y, health, damage, texture);
+    public ShieldEnemy(float x, float y, int health, int damage, Texture texture,float speed) {
+        super(x, y, health*2, damage, texture, speed);
     }
 }

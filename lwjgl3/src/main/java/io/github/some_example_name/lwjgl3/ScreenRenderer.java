@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import io.github.some_example_name.lwjgl3.Buidings.Barrier;
@@ -27,6 +28,7 @@ public class ScreenRenderer extends ApplicationAdapter {
     private Texture[] barrierTextures;
     private Texture backGroundTexture;
     private EnemySpawner enemySpawner;
+    private ShapeRenderer shapeRenderer;
 
     @Override
     public void create() {
@@ -41,6 +43,7 @@ public class ScreenRenderer extends ApplicationAdapter {
         player = new Player(hero);
         base = new Base(baseTexture, 1600, 400, 600, 600);
         enemySpawner = new EnemySpawner(enemies,0,0);
+        shapeRenderer = new ShapeRenderer();
     }
 
     private void handleAttacks() {
@@ -52,7 +55,7 @@ public class ScreenRenderer extends ApplicationAdapter {
                     int damage = enemy.getDamage();
                     int healthBefore = target.getHealth();
                     enemy.Attack(target);
-                    System.out.println("Enemy attacked "+damage);
+                    System.out.println("Enemy attacked "+damage + " target "+target.getName());
                     if (target.isDead() && target instanceof Barrier) {
                         int excessDamage = damage - healthBefore;
                         if (excessDamage > 0) {
@@ -75,12 +78,16 @@ public class ScreenRenderer extends ApplicationAdapter {
 
     @Override
     public void render() {
+
         Gdx.gl.glClearColor(0, 0, 0, 1);
         float deltaTime = Gdx.graphics.getDeltaTime();
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) {
             player.buildBarrier(base, barrierTextures, 100, 100);
+        }
+        if(player.getHero().isDead()||base.isDead()) {
+            restartLevel();
         }
         List<Rectangle> obstacles = new ArrayList<>();
         obstacles.add(base.getMovementCollider());
@@ -122,8 +129,30 @@ public class ScreenRenderer extends ApplicationAdapter {
             enemy.draw(batch);
         }
         batch.end();
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        player.getHero().drawColliders(shapeRenderer);
+        base.drawColliders(shapeRenderer);
+        for (Enemy enemy : enemies) {
+            enemy.drawColliders(shapeRenderer);
+        }
+        shapeRenderer.end();
     }
 
+    private void restartLevel() {
+        batch.dispose();
+        shapeRenderer.dispose();
+        batch = new SpriteBatch();
+        shapeRenderer = new ShapeRenderer();
+
+        Hero hero = new Hero(heroTexture, 100, 100);
+        player = new Player(hero);
+        base = new Base(baseTexture, 1600, 400, 600, 600);
+        enemies = new ArrayList<>();
+        enemySpawner = new EnemySpawner(enemies, 0, 0);
+
+        System.out.println("Level restarted.");
+    }
     @Override
     public void dispose() {
         batch.dispose();

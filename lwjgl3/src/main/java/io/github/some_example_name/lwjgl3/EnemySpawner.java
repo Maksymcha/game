@@ -35,9 +35,9 @@ public class EnemySpawner {
         int type = (int) (Math.random() * 2);
         Enemy newEnemy;
         if (type == 0) {
-            newEnemy = new RunningEnemy(x,y, 100, 30,runningEnemy);
+            newEnemy = new RunningEnemy(x,y, 100, 30,runningEnemy,300);
         } else {
-            newEnemy = new ShieldEnemy(x,y, 100, 30,shieldEnemy);
+            newEnemy = new ShieldEnemy(x,y, 100, 30,shieldEnemy,300);
         }
         enemies.add(newEnemy);
     }
