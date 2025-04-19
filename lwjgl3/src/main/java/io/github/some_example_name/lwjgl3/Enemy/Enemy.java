@@ -1,70 +1,34 @@
 package io.github.some_example_name.lwjgl3.Enemy;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import io.github.some_example_name.lwjgl3.*;
-import io.github.some_example_name.lwjgl3.Buidings.Base;
-import io.github.some_example_name.lwjgl3.Buidings.Building;
+import io.github.some_example_name.lwjgl3.Alive;
+import io.github.some_example_name.lwjgl3.Unit;
 
-import java.util.ArrayList;
 import java.util.List;
 
+public class Enemy extends Unit {
+    private ShapeRenderer shapeRenderer = new ShapeRenderer();
 
-public abstract class Enemy implements Alive, Attackable, Entity,Positionable {
-    protected Sprite sprite;
-    protected float x, y;
-    protected int health;
-    protected int damage;
-    protected float maxSpeed;
-    protected float speed;
-    private Rectangle movementCollider = new Rectangle();
-    private Rectangle attackCollider = new Rectangle();
-    public long lastAttackTime = 0;
-    private String name;
-
-    public Enemy(float x, float y, int health, int damage, Texture texture, float speed) {
-        this.x = x;
-        this.y = y;
-        this.health = health;
-        this.damage = damage;
-        sprite = new Sprite(texture);
-        sprite.setPosition(x, y);
-        updateColliders();
-        this.speed = speed;
+    public Enemy(float x, float y, int maxHealth, int damage, Texture texture, float speed) {
+        super(texture, x, y, maxHealth, damage, "Enemy", 1, speed, 3000);
     }
 
-    @Override
-    public Rectangle getMovementCollider() {
-        return movementCollider;
+    public void update(float deltaTime, List<Rectangle> obstacles, Vector2 basePosition, List<Alive> targets, long currentTime) {
+        move(obstacles, basePosition);
+        if (currentTime - lastAttackTime > attackCooldown) {
+            Alive target = getClosestTarget(targets);
+            if (target != null && getAttackCollider().overlaps(target.getMovementCollider())) {
+                Attack(target);
+                lastAttackTime = currentTime;
+            }
+        }
     }
 
-    @Override
-    public Rectangle getAttackCollider() {
-        return attackCollider;
-    }
-
-    public void updateColliders() {
-        movementCollider.set(x, y, sprite.getWidth(), sprite.getHeight());
-        attackCollider.set(x-sprite.getWidth(), y-sprite.getHeight(), sprite.getWidth()*3, sprite.getHeight()*3);
-    }
-
-     public String getName() {
-        return name;
-     }
-    public float getSpeed() {
-        return maxSpeed;
-    }
-
-
-    public void setSpeed(int speed) {
-          this.maxSpeed = speed;
-    }
-
-   public void move(List<Rectangle> enemysObstacles, Vector2 basePosition) {
+    public void move(List<Rectangle> obstacles, Vector2 basePosition) {
         float deltaTime = Gdx.graphics.getDeltaTime();
         float dx = basePosition.x - x;
         float dy = basePosition.y - y;
@@ -76,70 +40,20 @@ public abstract class Enemy implements Alive, Attackable, Entity,Positionable {
             float newY = y + moveY * deltaTime;
             Rectangle tempCollider = new Rectangle(newX, newY, movementCollider.width, movementCollider.height);
             boolean canMove = true;
-            for (Rectangle obstacle : enemysObstacles) {
+            for (Rectangle obstacle : obstacles) {
                 if (tempCollider.overlaps(obstacle)) {
                     canMove = false;
                     break;
                 }
             }
             if (canMove) {
-                x = newX;
-                y = newY;
-                sprite.setPosition(x, y);
-                updateColliders();
+                setX(newX);
+                setY(newY);
             }
         }
     }
 
-    @Override
-    public int getHealth() {
-        return health;
-    }
-
-    @Override
-    public void setHealth(int health) {
-
-    }
-
-    @Override
-    public void takeDamage(int damage) {
-        health -= damage;
-        if (health < 0) health = 0;
-    }
-
-    @Override
-    public int getLvl() {
-        return 0;
-    }
-
-    @Override
-    public boolean isDead() {
-        return health <= 0;
-    }
-
-    @Override
-    public void Attack(Alive target) {
-        target.takeDamage(damage);
-    }
-    @Override
-    public int getDamage() {
-        return damage;
-    }
-    @Override
-    public void draw(SpriteBatch batch) {
-        sprite.draw(batch);
-    }
-    public float getX() { return x; }
-    public float getY() { return y; }
-    public Alive getClosestTarget(Enemy enemy, Player player, Base base) {
-        List<Alive> targets = new ArrayList<>();
-        targets.add(player.getHero());
-        targets.add(base);
-        for (Building building : player.getBuildings()) {
-            if (building instanceof Alive) {
-                targets.add((Alive) building);
-            }
-        }
+    private Alive getClosestTarget(List<Alive> targets) {
         if (targets.isEmpty()) return null;
         Alive closest = targets.get(0);
         float minDist = distanceBetween(closest);
@@ -152,11 +66,11 @@ public abstract class Enemy implements Alive, Attackable, Entity,Positionable {
         }
         return closest;
     }
-    public void drawColliders(ShapeRenderer shapeRenderer) {
-        shapeRenderer.setColor(1, 0.5f, 0, 1); // Orange for movement collider
-        shapeRenderer.rect(movementCollider.x, movementCollider.y, movementCollider.width, movementCollider.height);
 
-        shapeRenderer.setColor(1, 0, 1, 1); // Magenta for attack collider
+    public void drawColliders(ShapeRenderer shapeRenderer) {
+        shapeRenderer.setColor(1, 0.5f, 0, 1);
+        shapeRenderer.rect(movementCollider.x, movementCollider.y, movementCollider.width, movementCollider.height);
+        shapeRenderer.setColor(1, 0, 1, 1);
         shapeRenderer.rect(attackCollider.x, attackCollider.y, attackCollider.width, attackCollider.height);
     }
 }

@@ -6,6 +6,7 @@ import io.github.some_example_name.lwjgl3.Enemy.Enemy;
 import io.github.some_example_name.lwjgl3.Enemy.RunningEnemy;
 import io.github.some_example_name.lwjgl3.Enemy.ShieldEnemy;
 
+import java.util.Iterator;
 import java.util.List;
 
 public class EnemySpawner {
@@ -27,6 +28,9 @@ public class EnemySpawner {
             spawnRandomEnemy(obstacles);
             timeSinceLastSpawn = 0f;
         }
+    }
+    public List<Enemy> enemies(){
+        return enemies;
     }
 
     private void spawnRandomEnemy(List<Rectangle> obstacles) {

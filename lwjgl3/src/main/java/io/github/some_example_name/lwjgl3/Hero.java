@@ -11,26 +11,22 @@ import io.github.some_example_name.lwjgl3.Enemy.Enemy;
 
 import java.util.List;
 
-public class Hero implements Entity, Alive, Attackable,Positionable {
-    private Sprite sprite;
-    private float x, y;
-    private float speed = 200f;
-    private int health = 100;
-    private int damage = 100;
-    private float lastAttackTime = 0f;
-    private Rectangle movementCollider;
-    private Rectangle attackCollider;
+public class Hero extends Unit {
     private ShapeRenderer shapeRenderer = new ShapeRenderer();
-    private String name = "hero";
 
     public Hero(Texture texture, float x, float y) {
-        this.sprite = new Sprite(texture);
-        this.x = x;
-        this.y = y;
-        this.sprite.setPosition(x, y);
-        this.movementCollider = new Rectangle(x, y, sprite.getWidth(), sprite.getHeight());
-        this.attackCollider = new Rectangle(x - 200, y - 200, sprite.getWidth()*3, sprite.getHeight()*3);
+        super(texture, x, y, 10, 100, "hero", 1, 200f, 1000);
+    }
 
+    public void update(float deltaTime, List<Rectangle> obstacles, List<Enemy> enemies, long currentTime) {
+        move(obstacles);
+        if (currentTime - lastAttackTime > attackCooldown) {
+            Enemy target = getClosestEnemy(enemies.toArray(new Enemy[0]));
+            if (target != null && getAttackCollider().overlaps(target.getMovementCollider())) {
+                Attack(target);
+                lastAttackTime = currentTime;
+            }
+        }
     }
 
     public void move(List<Rectangle> enemyColliders) {
@@ -57,52 +53,20 @@ public class Hero implements Entity, Alive, Attackable,Positionable {
         if (!isColliding(newX, newY + deltaY, enemyColliders)) {
             newY += deltaY;
         }
-        x = newX;
-        y = newY;
-        updateColliders();
-        sprite.setPosition(x, y);
+        setX(newX);
+        setY(newY);
     }
 
     private boolean isColliding(float x, float y, List<Rectangle> colliders) {
+        Rectangle tempCollider = new Rectangle(x, y, movementCollider.width, movementCollider.height);
         for (Rectangle r : colliders) {
-            if (movementCollider.overlaps(r)) return true;
+            if (tempCollider.overlaps(r)) return true;
         }
         return false;
     }
-    public void updateColliders() {
-        movementCollider.setPosition(x, y);
-        attackCollider.setPosition(x-sprite.getWidth(), y-sprite.getHeight());
-    }
 
-
-    @Override public void draw(SpriteBatch batch) { sprite.draw(batch); }
-    @Override public int getLvl() { return 1; }
-    @Override public boolean isDead() { return health <= 0; }
-    @Override public void takeDamage(int damage) { health -= damage; }
-    @Override public int getHealth() { return health; }
-    @Override public void setHealth(int health) { this.health = health; }
-
-    @Override
-    public void Attack(Alive target) {
-       target.takeDamage(damage);
-    }
-
-    @Override public int getDamage() { return damage; }
-     public void setDamage(int damage) { this.damage = damage; }
-    public float getLastAttackTime() { return lastAttackTime; }
-     public void setLastAttackTime(float time) { this.lastAttackTime = time; }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    public float getX() { return x; }
-    public float getY() { return y; }
-    public Rectangle getMovementCollider() { return movementCollider; }
-    public Rectangle getAttackCollider() { return attackCollider; }
     public Enemy getClosestEnemy(Enemy[] enemies) {
-        if (enemies.length==0) return null;
+        if (enemies.length == 0) return null;
         Enemy closest = enemies[0];
         float minDist = distanceBetween(closest);
         for (Enemy enemy : enemies) {
@@ -117,9 +81,7 @@ public class Hero implements Entity, Alive, Attackable,Positionable {
     public void drawColliders(ShapeRenderer shapeRenderer) {
         shapeRenderer.setColor(0, 1, 0, 1); // Green
         shapeRenderer.rect(movementCollider.x, movementCollider.y, movementCollider.width, movementCollider.height);
-
         shapeRenderer.setColor(1, 0, 0, 1); // Red
         shapeRenderer.rect(attackCollider.x, attackCollider.y, attackCollider.width, attackCollider.height);
     }
-
 }

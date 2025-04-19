@@ -30,11 +30,11 @@ public class Player {
                 }
             }
             if (!occupied) {
-                    Barrier barrier = new Barrier(1, 100, "Barrier", barrierTextures);
-                    barrier.setX(barrierX);
-                    barrier.setY(barrierY);
-                    buildings.add(barrier);
-                    money -= 100;
+                Barrier barrier = new Barrier(1, 100, "Barrier", barrierTextures);
+                barrier.setX(barrierX);
+                barrier.setY(barrierY);
+                buildings.add(barrier);
+                money -= 100;
 
             }
         }

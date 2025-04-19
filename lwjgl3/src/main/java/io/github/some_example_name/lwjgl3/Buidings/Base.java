@@ -55,6 +55,12 @@ public class Base implements Entity, Alive {
     public void draw(SpriteBatch batch) {
         baseSprite.draw(batch);
     }
+
+    @Override
+    public void update() {
+
+    }
+
     public float getX() { return baseSprite.getX(); }
     public float getY() { return baseSprite.getY(); }
     public float getWidth() { return baseSprite.getWidth(); }

@@ -1,13 +1,11 @@
 package io.github.some_example_name.lwjgl3;
 
+import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
@@ -15,16 +13,16 @@ import io.github.some_example_name.lwjgl3.Buidings.Barrier;
 import io.github.some_example_name.lwjgl3.Buidings.Base;
 import io.github.some_example_name.lwjgl3.Buidings.Building;
 import io.github.some_example_name.lwjgl3.Enemy.Enemy;
-import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.Input;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class ScreenRenderer extends ApplicationAdapter {
     private SpriteBatch batch;
     private Texture heroTexture, baseTexture, enemyTexture, barrierTexture;
     private Player player;
     private Base base;
-    private List<Enemy> enemies = new ArrayList<>();
     private Texture[] barrierTextures;
     private Texture backGroundTexture;
     private EnemySpawner enemySpawner;
@@ -42,82 +40,71 @@ public class ScreenRenderer extends ApplicationAdapter {
         Hero hero = new Hero(heroTexture, 100, 100);
         player = new Player(hero);
         base = new Base(baseTexture, 1600, 400, 600, 600);
-        enemySpawner = new EnemySpawner(enemies,0,0);
+        enemySpawner = new EnemySpawner(new ArrayList<>(), 0, 0);
         shapeRenderer = new ShapeRenderer();
-    }
-
-    private void handleAttacks() {
-        long currentTime = System.currentTimeMillis();
-        for (Enemy enemy : enemies) {
-            if (currentTime - enemy.lastAttackTime > 3000) {
-                Alive target = enemy.getClosestTarget(enemy,player,base);
-                if (target != null && enemy.getAttackCollider().overlaps(target.getMovementCollider())) {
-                    int damage = enemy.getDamage();
-                    int healthBefore = target.getHealth();
-                    enemy.Attack(target);
-                    System.out.println("Enemy attacked "+damage + " target "+target.getName());
-                    if (target.isDead() && target instanceof Barrier) {
-                        int excessDamage = damage - healthBefore;
-                        if (excessDamage > 0) {
-                            base.takeDamage(excessDamage);
-                        }
-                    }
-                    enemy.lastAttackTime = currentTime;
-                }
-            }
-        }
-        Hero hero = player.getHero();
-            Enemy target = hero.getClosestEnemy(enemies.toArray(new Enemy[0]));
-            if (target != null && hero.getAttackCollider().overlaps(target.getMovementCollider())) {
-                hero.Attack(target);
-                System.out.println("Hero attacked!");
-                hero.setLastAttackTime(currentTime);
-            }
-
     }
 
     @Override
     public void render() {
-
         Gdx.gl.glClearColor(0, 0, 0, 1);
-        float deltaTime = Gdx.graphics.getDeltaTime();
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        float deltaTime = Gdx.graphics.getDeltaTime();
+        long currentTime = System.currentTimeMillis();
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) {
             player.buildBarrier(base, barrierTextures, 100, 100);
         }
-        if(player.getHero().isDead()||base.isDead()) {
+        if (player.getHero().isDead() || base.isDead()) {
             restartLevel();
+            return;
         }
         List<Rectangle> obstacles = new ArrayList<>();
         obstacles.add(base.getMovementCollider());
-        List<Rectangle> enemysObstacles = new ArrayList<>();
-        enemysObstacles.add(base.getMovementCollider());
-        enemysObstacles.add(player.getHero().getMovementCollider());
         for (Building building : player.getBuildings()) {
             obstacles.add(building.getMovementCollider());
         }
-        enemySpawner.update(deltaTime, obstacles);
-        Vector2 basePosition = new Vector2(base.getX(), base.getY());
-        for (Enemy enemy : enemies) {
-            enemy.move(enemysObstacles, basePosition);
-            obstacles.add(enemy.getMovementCollider());
+        List<Rectangle> enemysObstacles = new ArrayList<>();
+        enemysObstacles.add(base.getMovementCollider());
+        enemysObstacles.add(player.getHero().getMovementCollider());
+        for (Enemy enemy : enemySpawner.enemies()) {
             enemysObstacles.add(enemy.getMovementCollider());
         }
-        handleAttacks();
-        player.getHero().move(obstacles);
-        for (Iterator<Enemy> iterator = enemies.iterator(); iterator.hasNext();) {
-            Enemy enemy = iterator.next();
+        List<Alive> targets = new ArrayList<>();
+        targets.add(player.getHero());
+        targets.add(base);
+        for (Building building : player.getBuildings()) {
+            if (building instanceof Alive) {
+                targets.add((Alive) building);
+            }
+        }
+
+        enemySpawner.update(deltaTime, obstacles);
+        player.getHero().update(deltaTime, obstacles, enemySpawner.enemies(), currentTime);
+
+        Vector2 basePosition = new Vector2(base.getX(), base.getY());
+        for (Enemy enemy : enemySpawner.enemies()) {
+            List<Rectangle> enemySpecificObstacles = new ArrayList<>(enemysObstacles);
+            enemySpecificObstacles.remove(enemy.getMovementCollider());
+            enemy.update(deltaTime, enemySpecificObstacles, basePosition, targets, currentTime);
+        }
+
+        Iterator<Enemy> enemyIterator = enemySpawner.enemies().iterator();
+        while (enemyIterator.hasNext()) {
+            Enemy enemy = enemyIterator.next();
             if (enemy.isDead()) {
-                iterator.remove();
+                enemyIterator.remove();
             }
         }
-        for (Iterator<Building> iterator = player.getBuildings().iterator(); iterator.hasNext();) {
-            Building building = iterator.next();
+
+        Iterator<Building> buildingIterator = player.getBuildings().iterator();
+        while (buildingIterator.hasNext()) {
+            Building building = buildingIterator.next();
             if (building instanceof Barrier && ((Barrier) building).isDead()) {
-                iterator.remove();
+                buildingIterator.remove();
             }
         }
+
         batch.begin();
         batch.draw(backGroundTexture, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         base.draw(batch);
@@ -125,7 +112,7 @@ public class ScreenRenderer extends ApplicationAdapter {
         for (Building building : player.getBuildings()) {
             building.draw(batch);
         }
-        for (Enemy enemy : enemies) {
+        for (Enemy enemy : enemySpawner.enemies()) {
             enemy.draw(batch);
         }
         batch.end();
@@ -133,7 +120,7 @@ public class ScreenRenderer extends ApplicationAdapter {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         player.getHero().drawColliders(shapeRenderer);
         base.drawColliders(shapeRenderer);
-        for (Enemy enemy : enemies) {
+        for (Enemy enemy : enemySpawner.enemies()) {
             enemy.drawColliders(shapeRenderer);
         }
         shapeRenderer.end();
@@ -144,15 +131,13 @@ public class ScreenRenderer extends ApplicationAdapter {
         shapeRenderer.dispose();
         batch = new SpriteBatch();
         shapeRenderer = new ShapeRenderer();
-
         Hero hero = new Hero(heroTexture, 100, 100);
         player = new Player(hero);
         base = new Base(baseTexture, 1600, 400, 600, 600);
-        enemies = new ArrayList<>();
-        enemySpawner = new EnemySpawner(enemies, 0, 0);
-
+        enemySpawner = new EnemySpawner(new ArrayList<>(), 0, 0);
         System.out.println("Level restarted.");
     }
+
     @Override
     public void dispose() {
         batch.dispose();
@@ -160,5 +145,7 @@ public class ScreenRenderer extends ApplicationAdapter {
         baseTexture.dispose();
         enemyTexture.dispose();
         barrierTexture.dispose();
+        backGroundTexture.dispose();
+        shapeRenderer.dispose();
     }
 }
